@@ -1,6 +1,9 @@
 require "lita"
 require "yourls"
 
+# Needed for yourls
+require "active_support/core_ext/integer/time"
+
 module Lita
   module Handlers
     class GoogleImages < Handler
