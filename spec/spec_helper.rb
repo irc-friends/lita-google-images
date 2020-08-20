@@ -9,4 +9,6 @@ SimpleCov.start { add_filter "/spec/" }
 require "lita-google-images"
 require "lita/rspec"
 
+require 'pry-byebug'
+
 Lita.version_3_compatibility_mode = false

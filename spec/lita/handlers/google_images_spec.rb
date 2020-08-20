@@ -1,6 +1,8 @@
 require "spec_helper"
 
 describe Lita::Handlers::GoogleImages, lita_handler: true do
+  let(:robot) { Lita::Robot.new(registry) }
+
   it { is_expected.to route_command("image me foo").to(:fetch) }
   it { is_expected.to route_command("image foo").to(:fetch) }
   it { is_expected.to route_command("img foo").to(:fetch) }
@@ -82,6 +84,25 @@ JSON
         expect(replies.last).to eq(
           "http://www.example.com/path/to/an/animation.gif"
         )
+      end
+
+      it 'shortens the URL' do
+        allow(response).to receive(:body).and_return(<<-JSON.chomp
+{
+  "items": [
+    {
+      "link": "http://www.example.com/path/to/an/image"
+    }
+  ]
+}
+JSON
+        )
+        allow_any_instance_of(described_class).to receive(:shorten_url?).and_return(true)
+        allow_any_instance_of(described_class).to receive(:shorten_url).and_return('https://bi.ly/foo')
+
+        send_command("image carl")
+
+        expect(replies.last).to eq('https://bi.ly/foo')
       end
     end
 

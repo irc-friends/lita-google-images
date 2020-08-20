@@ -1,4 +1,5 @@
 require "lita"
+require "yourls"
 
 module Lita
   module Handlers
@@ -16,6 +17,8 @@ module Lita
 
       config :google_cse_id, type: String, required: true
       config :google_cse_key, type: String, required: true
+      config :yourls_server, type: String
+      config :yourls_api_key, type: String
 
       route(/(?:image|img)(?:\s+me)? (.+)/i, :fetch, command: true, help: {
         "image QUERY" => "Displays a random image from Google Images matching the query."
@@ -62,7 +65,9 @@ module Lita
         if http_response.status == 200
           choice = data["items"].sample if data["items"]
           if choice
-            response.reply ensure_extension(choice["link"])
+            url = ensure_extension(choice["link"])
+            url = shorten_url(url) if shorten_url?
+            response.reply url
           else
             response.reply %{No images found for "#{query}".}
           end
@@ -75,6 +80,14 @@ module Lita
       end
 
       private
+
+      def shorten_url?
+        config.yourls_server && config.yourls_api_key
+      end
+
+      def shorten_url(url)
+        Yourls.new(config.yourls_server, config.yourls_api_key).shorten(url).short_url
+      end
 
       def ensure_extension(url)
         if [".gif", ".jpg", ".jpeg", ".png"].any? { |ext| url.end_with?(ext) }
